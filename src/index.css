@@ -1,0 +1,719 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+
+:root {
+  --bg: #0f1419;
+  --panel: #171e26;
+  --panel-2: #1c2530;
+  --line: #2a3542;
+  --text: #e8eef4;
+  --muted: #8b9aab;
+  --accent: #3d9cf0;
+  --ok: #2dd4a8;
+  --bad: #f07178;
+  --warn: #f0b429;
+  --shadow: 0 18px 48px rgba(0, 0, 0, 0.35);
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  line-height: 1.45;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(ellipse 70% 45% at 0% 0%, rgba(61, 156, 240, 0.12), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 100% 100%, rgba(45, 212, 168, 0.08), transparent 50%),
+    var(--bg);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(23, 30, 38, 0.92);
+  backdrop-filter: blur(8px);
+  flex-wrap: wrap;
+}
+
+.brand h1 {
+  margin: 2px 0 4px;
+  font-size: clamp(1.25rem, 2.4vw, 1.65rem);
+  font-weight: 700;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.muted {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.live-pill {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: #121820;
+}
+
+.live-pill--live {
+  color: var(--ok);
+  border-color: #245847;
+}
+
+.live-pill--connecting {
+  color: var(--warn);
+}
+
+.live-pill--offline {
+  color: var(--bad);
+}
+
+.btn {
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--text);
+  padding: 9px 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    transform 220ms cubic-bezier(0.32, 0.72, 0, 1),
+    background-color 220ms cubic-bezier(0.32, 0.72, 0, 1),
+    border-color 220ms cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 220ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.btn:hover:not(:disabled) {
+  border-color: #3a4f66;
+  transform: translateY(-1px);
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn.primary {
+  background: var(--accent);
+  border-color: transparent;
+  color: #041018;
+}
+
+.btn.danger {
+  background: transparent;
+  border-color: #69343a;
+  color: var(--bad);
+}
+
+.btn.ghost {
+  background: transparent;
+}
+
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--text);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.layout {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  min-height: 0;
+}
+
+.layout.panel-closed {
+  grid-template-columns: 1fr;
+}
+
+@media (max-width: 980px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .booking-panel {
+    position: fixed;
+    inset: auto 0 0 0;
+    max-height: min(78vh, 640px);
+    z-index: 40;
+    border-radius: 18px 18px 0 0;
+    box-shadow: var(--shadow);
+  }
+}
+
+.main-pane {
+  min-width: 0;
+  padding: 16px 18px 28px;
+}
+
+.state-banner {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #241a12;
+  border: 1px solid #4a3420;
+  color: var(--warn);
+  font-size: 0.9rem;
+}
+
+.calendar-shell {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 14px;
+}
+
+.calendar-toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.calendar-toolbar h2 {
+  margin: 0 0 4px;
+  font-size: 1.05rem;
+}
+
+.calendar-toolbar p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+  max-width: 54ch;
+}
+
+.calendar-legend {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.calendar-legend i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+.calendar-legend .pending-dot {
+  background: rgba(61, 156, 240, 0.55);
+  border: 2px dashed #7ec4ff;
+  box-sizing: border-box;
+  border-radius: 3px;
+  animation: pending-breathe 1.8s cubic-bezier(0.32, 0.72, 0, 1) infinite;
+}
+
+.calendar-legend .remote-pending-dot {
+  background: rgba(192, 132, 252, 0.55);
+  border: 2px dashed #c084fc;
+  box-sizing: border-box;
+  border-radius: 3px;
+}
+
+/* Live drag-select mirror + persisted pending box — always above confirmed slots */
+.fc-timegrid-event.fc-event-mirror,
+.fc-event.pending-selection,
+.fc-event.remote-pending {
+  z-index: 8 !important;
+  border-width: 2px !important;
+  border-style: dashed !important;
+  border-radius: 8px !important;
+  box-shadow:
+    0 0 0 1px rgba(126, 196, 255, 0.35),
+    0 10px 28px rgba(61, 156, 240, 0.28);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  backdrop-filter: none;
+}
+
+.fc-timegrid-event.fc-event-mirror,
+.fc-event.pending-selection {
+  animation: pending-breathe 1.8s cubic-bezier(0.32, 0.72, 0, 1) infinite;
+}
+
+.fc-event.remote-pending {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.18),
+    0 10px 24px rgba(0, 0, 0, 0.28);
+  cursor: default;
+  opacity: 0.92;
+}
+
+/* Edit mode: highlight the booked event itself (no second pending ghost) */
+.fc-event.editing-selection {
+  z-index: 8 !important;
+  border-width: 2px !important;
+  border-style: solid !important;
+  border-radius: 8px !important;
+  outline: 2px solid rgba(255, 246, 232, 0.85);
+  outline-offset: 2px;
+  box-shadow:
+    0 0 0 1px rgba(255, 246, 232, 0.35),
+    0 12px 32px rgba(61, 156, 240, 0.35);
+  font-weight: 600;
+  animation: editing-pulse 2s cubic-bezier(0.32, 0.72, 0, 1) infinite;
+}
+
+.fc-event.editing-selection .fc-event-main {
+  color: #041018 !important;
+}
+
+.fc-event.editing-selection--conflict {
+  outline-color: rgba(240, 113, 120, 0.9);
+  animation: pending-breathe-conflict 1.8s cubic-bezier(0.32, 0.72, 0, 1) infinite;
+}
+
+/* Other tab editing the same booked slot — highlight in place, not a new ghost */
+.fc-event.remote-editing {
+  z-index: 8 !important;
+  border-width: 2px !important;
+  border-style: solid !important;
+  border-radius: 8px !important;
+  outline: 2px dashed currentColor;
+  outline-offset: 2px;
+  font-weight: 600;
+  cursor: default;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+}
+
+.fc-event.remote-editing .fc-event-main {
+  color: #0a0a0a !important;
+}
+
+@keyframes editing-pulse {
+  0%,
+  100% {
+    filter: brightness(1.05);
+    box-shadow:
+      0 0 0 1px rgba(255, 246, 232, 0.35),
+      0 12px 28px rgba(61, 156, 240, 0.28);
+  }
+  50% {
+    filter: brightness(1.12);
+    box-shadow:
+      0 0 0 2px rgba(255, 246, 232, 0.55),
+      0 16px 36px rgba(61, 156, 240, 0.42);
+  }
+}
+
+.fc-timegrid-event.fc-event-mirror {
+  background: rgba(61, 156, 240, 0.78) !important;
+  border-color: #7ec4ff !important;
+  color: #041018 !important;
+}
+
+.fc-timegrid-event.fc-event-mirror .fc-event-main,
+.fc-event.pending-selection .fc-event-main {
+  color: #041018 !important;
+}
+
+.fc-event.pending-selection--conflict {
+  animation: pending-breathe-conflict 1.8s cubic-bezier(0.32, 0.72, 0, 1) infinite;
+}
+
+@keyframes pending-breathe {
+  0%,
+  100% {
+    filter: brightness(1);
+    box-shadow:
+      0 0 0 1px rgba(126, 196, 255, 0.35),
+      0 10px 28px rgba(61, 156, 240, 0.22);
+  }
+  50% {
+    filter: brightness(1.08);
+    box-shadow:
+      0 0 0 2px rgba(126, 196, 255, 0.55),
+      0 14px 32px rgba(61, 156, 240, 0.38);
+  }
+}
+
+@keyframes pending-breathe-conflict {
+  0%,
+  100% {
+    filter: brightness(1);
+    box-shadow:
+      0 0 0 1px rgba(240, 113, 120, 0.4),
+      0 10px 28px rgba(240, 113, 120, 0.22);
+  }
+  50% {
+    filter: brightness(1.06);
+    box-shadow:
+      0 0 0 2px rgba(240, 113, 120, 0.55),
+      0 14px 32px rgba(240, 113, 120, 0.38);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .calendar-legend .pending-dot,
+  .fc-timegrid-event.fc-event-mirror,
+  .fc-event.pending-selection,
+  .fc-event.editing-selection {
+    animation: none;
+  }
+}
+
+.calendar-scroller {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.calendar-scroller .fc {
+  min-width: 720px;
+  font-family: inherit;
+}
+
+.fc {
+  --fc-border-color: var(--line);
+  --fc-page-bg-color: transparent;
+  --fc-neutral-bg-color: var(--panel-2);
+  --fc-list-event-hover-bg-color: #243041;
+  --fc-today-bg-color: rgba(61, 156, 240, 0.08);
+  --fc-highlight-color: rgba(61, 156, 240, 0.28);
+  --fc-now-indicator-color: var(--bad);
+  --fc-button-bg-color: var(--panel-2);
+  --fc-button-border-color: var(--line);
+  --fc-button-text-color: var(--text);
+  --fc-button-hover-bg-color: #243041;
+  --fc-button-hover-border-color: #3a4f66;
+  --fc-button-active-bg-color: #2a3a4d;
+  --fc-button-active-border-color: #3a4f66;
+}
+
+.fc .fc-toolbar-title {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.fc .fc-col-header-cell-cushion,
+.fc .fc-timegrid-slot-label-cushion {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.fc .fc-event {
+  border-radius: 6px;
+  font-size: 11px;
+  line-height: 1.25;
+  padding: 2px 4px;
+  cursor: pointer;
+  white-space: pre-wrap;
+}
+
+.fc .fc-timegrid-event .fc-event-main {
+  padding: 2px;
+}
+
+.booking-panel {
+  border-left: 1px solid var(--line);
+  background: rgba(23, 30, 38, 0.98);
+  padding: 16px;
+  overflow: auto;
+}
+
+.booking-panel__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.booking-panel__head h2 {
+  margin: 4px 0;
+  font-size: 1.15rem;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+}
+
+.field span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.field--error input {
+  border-color: #69343a;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--text);
+  padding: 9px 10px;
+}
+
+.availability {
+  border-radius: 12px;
+  padding: 12px;
+  margin: 8px 0 14px;
+  font-size: 0.9rem;
+}
+
+.availability strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.availability ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+}
+
+.availability.ok {
+  background: #132018;
+  border: 1px solid #1f3a2a;
+  color: #b7f0d6;
+}
+
+.availability.bad {
+  background: #24161a;
+  border: 1px solid #4a2a32;
+  color: #ffc9cd;
+}
+
+.availability.pending {
+  background: #1a2030;
+  border: 1px solid #2a3542;
+  color: var(--muted);
+}
+
+.booking-actions {
+  display: grid;
+  gap: 8px;
+}
+
+.toast {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 50;
+  max-width: min(360px, calc(100vw - 32px));
+  background: #132018;
+  border: 1px solid #2a5a3c;
+  color: #b7f0d6;
+  padding: 12px 14px;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  animation: toast-in 0.22s ease;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.loading-screen {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+}
+
+.obs-fab {
+  position: fixed;
+  left: 18px;
+  bottom: 18px;
+  z-index: 45;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: #121820;
+  color: var(--warn);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 10px 14px;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+}
+
+.obs-panel {
+  position: fixed;
+  left: 18px;
+  bottom: 64px;
+  z-index: 46;
+  width: min(420px, calc(100vw - 32px));
+  max-height: min(70vh, 560px);
+  overflow: auto;
+  background: rgba(18, 24, 32, 0.98);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 14px;
+  box-shadow: var(--shadow);
+}
+
+.obs-panel__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.obs-panel__head h2 {
+  margin: 2px 0 4px;
+  font-size: 1.05rem;
+}
+
+.obs-panel__actions {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.obs-metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.obs-metric {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.obs-metric span {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.obs-metric strong {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 1rem;
+}
+
+.obs-logs-title {
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 8px;
+}
+
+.obs-logs {
+  display: grid;
+  gap: 8px;
+}
+
+.obs-log {
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  padding: 8px 10px;
+  background: #10161d;
+  font-size: 0.85rem;
+}
+
+.obs-log header {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.obs-log__level {
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.obs-log--info .obs-log__level { color: var(--accent); }
+.obs-log--warn .obs-log__level { color: var(--warn); }
+.obs-log--error .obs-log__level { color: var(--bad); }
+.obs-log--debug .obs-log__level { color: var(--muted); }
+
+.obs-log p { margin: 0 0 6px; }
+
+.obs-log footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.obs-log code {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  background: #1a2430;
+  padding: 2px 6px;
+  border-radius: 5px;
+  color: var(--muted);
+}
