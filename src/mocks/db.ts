@@ -53,7 +53,7 @@ class MockDb {
     this.ready = this.hydrate()
   }
 
-  /** Wait until `.runtime-data/appointments.json` has been loaded (or seeded). */
+  /** Wait until persisted appointments have been loaded (or seeded). */
   whenReady() {
     return this.ready
   }
@@ -66,14 +66,14 @@ class MockDb {
         this.appointments = stored
         return
       }
-      // First run: seed disk so other tabs share the same baseline
+      // First run: seed persistence so other tabs share the same baseline
       await this.persistAsync()
     } catch {
-      // Dev server middleware may be cold; keep in-memory seed
+      // Dev middleware / storage may be cold; keep in-memory seed
     }
   }
 
-  /** Pull latest appointments from disk (other tab may have written). */
+  /** Pull latest appointments from persistence (other tab may have written). */
   async reloadFromRuntime() {
     if (typeof window === 'undefined' || import.meta.env.MODE === 'test') return
     try {

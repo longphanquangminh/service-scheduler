@@ -1,11 +1,16 @@
 import { useEffect } from 'react'
 import { addDays, endOfWeek, startOfWeek } from 'date-fns'
 import { api } from '../api/client'
-import { RUNTIME_SYNC_CHANNEL } from '../mocks/runtimeApi'
+import {
+  getLocalSaveMode,
+  localStorageKeyFor,
+  RUNTIME_APPOINTMENTS_FILE,
+  RUNTIME_SYNC_CHANNEL,
+} from '../mocks/runtimeApi'
 import { useSchedulerStore } from '../store/schedulerStore'
 
 /**
- * When another tab writes `.runtime-data/appointments.json`, refresh this tab’s calendar.
+ * When another tab persists appointments (runtime JSON or localStorage), refresh this tab’s calendar.
  */
 export function useCrossTabAppointmentSync() {
   const dealership = useSchedulerStore((s) => s.dealership)
@@ -34,6 +39,17 @@ export function useCrossTabAppointmentSync() {
       channel = null
     }
 
-    return () => channel?.close()
+    const appointmentsLsKey = localStorageKeyFor(RUNTIME_APPOINTMENTS_FILE)
+    const onStorage = (event: StorageEvent) => {
+      if (getLocalSaveMode() !== 'localstorage') return
+      if (event.key !== appointmentsLsKey) return
+      void refresh()
+    }
+    window.addEventListener('storage', onStorage)
+
+    return () => {
+      channel?.close()
+      window.removeEventListener('storage', onStorage)
+    }
   }, [dealership, setAppointments])
 }

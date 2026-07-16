@@ -80,7 +80,7 @@ npm run preview   # serve the production build locally
 npm run lint      # oxlint
 ```
 
-**Deploy note:** static hosting of `dist/` works for the UI + MSW demo. Disk persistence under `.runtime-data/` requires the Vite dev middleware (`npm run dev`); it is not available on plain static hosts.
+**Deploy note:** static hosting of `dist/` works for the UI + MSW demo. Prefer `VITE_LOCAL_SAVE_MODE=localstorage` for preview/static hosts. Disk persistence under `.runtime-data/` (`VITE_LOCAL_SAVE_MODE=json`) needs Vite’s `/__runtime` middleware (`npm run dev`).
 
 ---
 
@@ -104,7 +104,7 @@ npm run lint      # oxlint
 | --- | --- |
 | Resource-constrained booking | Book vehicle + service type + dealership + time; bay + technician assigned |
 | Real-time availability check | `POST /api/availability/check` before confirm; UI blocks unsafe confirms |
-| Confirmed appointment record | `POST /api/appointments` persists (dev: `.runtime-data/appointments.json`) and appears on the calendar |
+| Confirmed appointment record | `POST /api/appointments` persists via `VITE_LOCAL_SAVE_MODE` (`json` file or `localstorage`) and appears on the calendar |
 | Frontend + mocked backend | Full UX in React; REST + WS mocked with **MSW** |
 | Tests for core business logic | Vitest on availability + time rules |
 | Observability strategy | OpenTelemetry Web SDK → Jaeger (OTLP) or console exporter |
@@ -153,12 +153,21 @@ Built with **FullCalendar** (`timeGridWeek` / `timeGridDay`):
 
 ### Dev persistence
 
-Successful writes persist under **`.runtime-data/`** (gitignored):
+Controlled by **`VITE_LOCAL_SAVE_MODE`** (restart `npm run dev` after change):
 
-- `appointments.json`
-- `pending.json` — array of active pending presence records (`RemotePending[]`)
+| Value | Where data lives | Best for |
+| --- | --- | --- |
+| `json` (default) | `.runtime-data/appointments.json`, `pending.json` via Vite `/__runtime` | Local demo — open files in the editor |
+| `localstorage` | Browser `localStorage` keys `keyloop.scheduler.runtime.*` | Preview / static deploy / no disk middleware |
 
-Served via Vite middleware `GET/PUT /__runtime/*.json`.
+```bash
+# .env
+VITE_LOCAL_SAVE_MODE=json
+# or
+VITE_LOCAL_SAVE_MODE=localstorage
+```
+
+Cross-tab sync still uses BroadcastChannel (+ `storage` events in localStorage mode).
 
 ---
 
