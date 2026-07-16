@@ -156,7 +156,7 @@ Built with **FullCalendar** (`timeGridWeek` / `timeGridDay`):
 Successful writes persist under **`.runtime-data/`** (gitignored):
 
 - `appointments.json`
-- `pending.json`
+- `pending.json` — array of active pending presence records (`RemotePending[]`)
 
 Served via Vite middleware `GET/PUT /__runtime/*.json`.
 

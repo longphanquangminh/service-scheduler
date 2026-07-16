@@ -32,12 +32,33 @@ function enqueuePendingWrite<T>(work: () => T): Promise<T> {
   return run
 }
 
-function readJsonObject(filePath: string): Record<string, unknown> {
-  if (!fs.existsSync(filePath)) return {}
+function readJsonArray(filePath: string): Record<string, unknown>[] {
+  if (!fs.existsSync(filePath)) return []
   const parsed: unknown = JSON.parse(fs.readFileSync(filePath, 'utf8'))
-  return parsed && typeof parsed === 'object' && !Array.isArray(parsed)
-    ? (parsed as Record<string, unknown>)
-    : {}
+  if (Array.isArray(parsed)) {
+    return parsed.filter(
+      (item): item is Record<string, unknown> =>
+        !!item && typeof item === 'object' && typeof item.sessionId === 'string',
+    )
+  }
+  // Legacy object map keyed by sessionId
+  if (parsed && typeof parsed === 'object') {
+    return Object.values(parsed as Record<string, Record<string, unknown>>).filter(
+      (item) => typeof item?.sessionId === 'string',
+    )
+  }
+  return []
+}
+
+function upsertPendingInList(
+  list: Record<string, unknown>[],
+  upsert: Record<string, unknown> & { sessionId: string },
+): Record<string, unknown>[] {
+  const index = list.findIndex((item) => item.sessionId === upsert.sessionId)
+  if (index === -1) return [...list, upsert]
+  const next = [...list]
+  next[index] = upsert
+  return next
 }
 
 /**
@@ -88,20 +109,20 @@ export function runtimeDataPlugin(): Plugin {
             return
           }
 
-          // Atomic key merge for shared pending presence (avoids multi-tab RMW clobber).
+          // Atomic merge for shared pending presence (avoids multi-tab RMW clobber).
           if (req.method === 'PATCH' && fileName === 'pending.json') {
             const op = JSON.parse(await readBody(req)) as PendingPatchOp
             const next = await enqueuePendingWrite(() => {
-              const map = readJsonObject(filePath)
+              let list = readJsonArray(filePath)
               if (typeof op.remove === 'string' && op.remove) {
-                delete map[op.remove]
+                list = list.filter((item) => item.sessionId !== op.remove)
               }
               if (op.upsert?.sessionId) {
-                map[op.upsert.sessionId] = op.upsert
+                list = upsertPendingInList(list, op.upsert)
               }
               fs.mkdirSync(RUNTIME_DIR, { recursive: true })
-              fs.writeFileSync(filePath, JSON.stringify(map, null, 2), 'utf8')
-              return map
+              fs.writeFileSync(filePath, JSON.stringify(list, null, 2), 'utf8')
+              return list
             })
             res.statusCode = 200
             res.setHeader('Content-Type', 'application/json')

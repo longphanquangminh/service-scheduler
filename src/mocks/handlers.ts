@@ -29,7 +29,7 @@ function mockEdgeLog(request: Request, route: string) {
 }
 
 function snapshotPendings(): Promise<RemotePending[]> {
-  return readPendingStore().then((map) => Object.values(map))
+  return readPendingStore()
 }
 
 export const handlers = [

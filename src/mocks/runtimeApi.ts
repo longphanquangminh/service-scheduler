@@ -33,7 +33,7 @@ export async function writeRuntimeJson(fileName: string, data: unknown): Promise
 export async function patchPendingJson(op: {
   upsert?: Record<string, unknown> & { sessionId: string }
   remove?: string
-}): Promise<Record<string, unknown>> {
+}): Promise<unknown[]> {
   const response = await fetch(`${RUNTIME_BASE}/${RUNTIME_PENDING_FILE}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
@@ -42,7 +42,7 @@ export async function patchPendingJson(op: {
   if (!response.ok) {
     throw new Error(`Failed to patch ${RUNTIME_PENDING_FILE}: HTTP ${response.status}`)
   }
-  return (await response.json()) as Record<string, unknown>
+  return (await response.json()) as unknown[]
 }
 
 export function notifyRuntimeSync(kind: 'appointments' | 'pending') {

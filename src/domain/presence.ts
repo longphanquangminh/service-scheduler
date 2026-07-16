@@ -1,3 +1,4 @@
+import type { RemotePending } from './types'
 import {
   notifyRuntimeSync,
   patchPendingJson,
@@ -46,33 +47,37 @@ export function isRemotePendingEventId(id: string): boolean {
   return id.startsWith('__remote_pending_')
 }
 
-export type StoredPendingMap = Record<
-  string,
-  {
-    sessionId: string
-    label: string
-    color: string
-    start: string
-    end: string
-    mode: 'create' | 'edit'
-    appointmentId?: string
-    updatedAt: string
+/** Normalize legacy object map or array file into a pending list. */
+function normalizePendingStore(parsed: unknown): RemotePending[] {
+  if (Array.isArray(parsed)) {
+    return parsed.filter(
+      (item): item is RemotePending =>
+        !!item &&
+        typeof item === 'object' &&
+        typeof (item as RemotePending).sessionId === 'string',
+    )
   }
->
-
-export async function readPendingStore(): Promise<StoredPendingMap> {
-  const parsed = await readRuntimeJson<StoredPendingMap>(RUNTIME_PENDING_FILE)
-  return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {}
+  if (parsed && typeof parsed === 'object') {
+    return Object.values(parsed as Record<string, RemotePending>).filter(
+      (item) => typeof item?.sessionId === 'string',
+    )
+  }
+  return []
 }
 
-export async function upsertPendingStore(pending: StoredPendingMap[string]) {
-  const next = (await patchPendingJson({ upsert: pending })) as StoredPendingMap
+export async function readPendingStore(): Promise<RemotePending[]> {
+  const parsed = await readRuntimeJson<unknown>(RUNTIME_PENDING_FILE)
+  return normalizePendingStore(parsed)
+}
+
+export async function upsertPendingStore(pending: RemotePending) {
+  const next = (await patchPendingJson({ upsert: pending })) as RemotePending[]
   notifyRuntimeSync('pending')
   return next
 }
 
 export async function removePendingStore(sessionId: string) {
-  const next = (await patchPendingJson({ remove: sessionId })) as StoredPendingMap
+  const next = (await patchPendingJson({ remove: sessionId })) as RemotePending[]
   notifyRuntimeSync('pending')
   return next
 }

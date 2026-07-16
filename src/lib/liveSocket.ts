@@ -71,10 +71,10 @@ export function subscribePendingPresence(onEvent: (event: LiveEvent) => void): (
     syncChannel.addEventListener('message', (message) => {
       const data = message.data as { type?: string } | undefined
       if (data?.type !== 'pending.changed') return
-      void readPendingStore().then((map) => {
+      void readPendingStore().then((pendings) => {
         onEvent({
           type: 'pending.snapshot',
-          pendings: Object.values(map),
+          pendings,
         })
       })
     })
@@ -83,10 +83,10 @@ export function subscribePendingPresence(onEvent: (event: LiveEvent) => void): (
   }
 
   // Hydrate after refresh: live BC history is gone; disk is the source of truth.
-  void readPendingStore().then((map) => {
+  void readPendingStore().then((pendings) => {
     onEvent({
       type: 'pending.snapshot',
-      pendings: Object.values(map),
+      pendings,
     })
   })
 
