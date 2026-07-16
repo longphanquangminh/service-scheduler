@@ -1,10 +1,6 @@
 import { http, HttpResponse, ws } from 'msw'
 import { atLocal, vehicles } from '../data/seed'
-import {
-  readPendingStore,
-  removePendingStore,
-  upsertPendingStore,
-} from '../domain/presence'
+import { readPendingStore } from '../domain/presence'
 import { catalog, db } from './db'
 import type {
   AvailabilityRequest,
@@ -31,9 +27,6 @@ function mockEdgeLog(request: Request, route: string) {
     console.debug('[msw]', route, { traceparent })
   }
 }
-
-/** Map MSW WebSocket client id → presence sessionId for disconnect cleanup. */
-const clientSessionIds = new Map<string, string>()
 
 function snapshotPendings(): Promise<RemotePending[]> {
   return readPendingStore().then((map) => Object.values(map))
@@ -206,8 +199,7 @@ export const handlers = [
       try {
         const message = JSON.parse(String(event.data)) as PendingClientMessage
         if (message.type === 'pending.publish') {
-          clientSessionIds.set(client.id, message.pending.sessionId)
-          void upsertPendingStore(message.pending)
+          // Disk is owned by the publishing tab (atomic PATCH). Handler only relays WS.
           liveWs.broadcastExcept(
             client,
             JSON.stringify({
@@ -218,8 +210,6 @@ export const handlers = [
           return
         }
         if (message.type === 'pending.clear') {
-          clientSessionIds.set(client.id, message.sessionId)
-          void removePendingStore(message.sessionId)
           liveWs.broadcastExcept(
             client,
             JSON.stringify({
@@ -231,14 +221,6 @@ export const handlers = [
       } catch {
         // ignore malformed client payloads in demo
       }
-    })
-
-    client.addEventListener('close', () => {
-      const sessionId = clientSessionIds.get(client.id)
-      clientSessionIds.delete(client.id)
-      if (!sessionId) return
-      void removePendingStore(sessionId)
-      broadcast({ type: 'pending.cleared', sessionId })
     })
   }),
 ]

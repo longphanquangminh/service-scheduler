@@ -82,6 +82,14 @@ export function subscribePendingPresence(onEvent: (event: LiveEvent) => void): (
     syncChannel = null
   }
 
+  // Hydrate after refresh: live BC history is gone; disk is the source of truth.
+  void readPendingStore().then((map) => {
+    onEvent({
+      type: 'pending.snapshot',
+      pendings: Object.values(map),
+    })
+  })
+
   return () => {
     channel?.close()
     syncChannel?.close()

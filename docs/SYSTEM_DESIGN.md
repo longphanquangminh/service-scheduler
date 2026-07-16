@@ -118,7 +118,7 @@ Extras beyond the minimum MVP (documented assumptions): interactive FullCalendar
 1. **Simulate other advisor** → demo REST → MockDb create → WS `appointment.created`  
 2. Second tab creating → remote **pending** box on calendar  
 3. Second tab editing → remote **editing** style on the shared booked event (`appointmentId` in presence payload)  
-4. Cross-tab: BroadcastChannel + runtime JSON back the MSW WS mock for same-origin reliability  
+4. Cross-tab: BroadcastChannel + runtime JSON back the MSW WS mock for same-origin reliability; new tabs hydrate remote pending from `pending.json` on mount (atomic PATCH merge so refresh cannot clobber another session)  
 
 ## 5. Technology choices
 

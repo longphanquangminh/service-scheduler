@@ -1,8 +1,8 @@
 import {
   notifyRuntimeSync,
+  patchPendingJson,
   readRuntimeJson,
   RUNTIME_PENDING_FILE,
-  writeRuntimeJson,
 } from '../mocks/runtimeApi'
 
 const SESSION_STORAGE_KEY = 'keyloop.scheduler.sessionId'
@@ -65,21 +65,14 @@ export async function readPendingStore(): Promise<StoredPendingMap> {
   return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {}
 }
 
-export async function writePendingStore(map: StoredPendingMap) {
-  await writeRuntimeJson(RUNTIME_PENDING_FILE, map)
-  notifyRuntimeSync('pending')
-}
-
 export async function upsertPendingStore(pending: StoredPendingMap[string]) {
-  const next = await readPendingStore()
-  next[pending.sessionId] = pending
-  await writePendingStore(next)
+  const next = (await patchPendingJson({ upsert: pending })) as StoredPendingMap
+  notifyRuntimeSync('pending')
   return next
 }
 
 export async function removePendingStore(sessionId: string) {
-  const next = await readPendingStore()
-  delete next[sessionId]
-  await writePendingStore(next)
+  const next = (await patchPendingJson({ remove: sessionId })) as StoredPendingMap
+  notifyRuntimeSync('pending')
   return next
 }

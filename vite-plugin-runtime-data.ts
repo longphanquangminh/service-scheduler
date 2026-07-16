@@ -15,9 +15,35 @@ function readBody(req: Connect.IncomingMessage): Promise<string> {
   })
 }
 
+type PendingPatchOp = {
+  upsert?: Record<string, unknown> & { sessionId: string }
+  remove?: string
+}
+
+/** Serialize pending.json mutations so multi-tab upsert/remove cannot clobber each other. */
+let pendingWriteChain: Promise<void> = Promise.resolve()
+
+function enqueuePendingWrite<T>(work: () => T): Promise<T> {
+  const run = pendingWriteChain.then(work, work)
+  pendingWriteChain = run.then(
+    () => undefined,
+    () => undefined,
+  )
+  return run
+}
+
+function readJsonObject(filePath: string): Record<string, unknown> {
+  if (!fs.existsSync(filePath)) return {}
+  const parsed: unknown = JSON.parse(fs.readFileSync(filePath, 'utf8'))
+  return parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+    ? (parsed as Record<string, unknown>)
+    : {}
+}
+
 /**
  * Dev-only disk persistence for the mock API.
  * GET/PUT /__runtime/<name>.json → .runtime-data/<name>.json
+ * PATCH /__runtime/pending.json → atomic upsert/remove by sessionId
  */
 export function runtimeDataPlugin(): Plugin {
   return {
@@ -59,6 +85,27 @@ export function runtimeDataPlugin(): Plugin {
             fs.writeFileSync(filePath, raw, 'utf8')
             res.statusCode = 204
             res.end()
+            return
+          }
+
+          // Atomic key merge for shared pending presence (avoids multi-tab RMW clobber).
+          if (req.method === 'PATCH' && fileName === 'pending.json') {
+            const op = JSON.parse(await readBody(req)) as PendingPatchOp
+            const next = await enqueuePendingWrite(() => {
+              const map = readJsonObject(filePath)
+              if (typeof op.remove === 'string' && op.remove) {
+                delete map[op.remove]
+              }
+              if (op.upsert?.sessionId) {
+                map[op.upsert.sessionId] = op.upsert
+              }
+              fs.mkdirSync(RUNTIME_DIR, { recursive: true })
+              fs.writeFileSync(filePath, JSON.stringify(map, null, 2), 'utf8')
+              return map
+            })
+            res.statusCode = 200
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify(next))
             return
           }
 

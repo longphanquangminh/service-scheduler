@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { getSessionId, sessionColor, sessionLabel } from '../domain/presence'
 import { isValidBookingRange } from '../domain/time'
 import { clearPendingPresence, publishPendingPresence } from '../lib/liveSocket'
@@ -12,16 +12,22 @@ export function usePendingPresence() {
   const mode = useSchedulerStore((s) => s.mode)
   const draft = useSchedulerStore((s) => s.draft)
   const liveStatus = useSchedulerStore((s) => s.liveStatus)
+  const hadPublishedRef = useRef(false)
 
   useEffect(() => {
     const sessionId = getSessionId()
 
     if (mode === 'closed' || !draft || !isValidBookingRange(draft.start, draft.end)) {
-      clearPendingPresence(sessionId)
+      // Skip clear on cold mount (mode already closed) — avoids racing other tabs' disk writes.
+      if (hadPublishedRef.current) {
+        hadPublishedRef.current = false
+        clearPendingPresence(sessionId)
+      }
       return
     }
 
     const timer = window.setTimeout(() => {
+      hadPublishedRef.current = true
       publishPendingPresence({
         sessionId,
         label: sessionLabel(sessionId),
@@ -39,7 +45,11 @@ export function usePendingPresence() {
 
   useEffect(() => {
     const sessionId = getSessionId()
-    const clear = () => clearPendingPresence(sessionId)
+    const clear = () => {
+      if (!hadPublishedRef.current) return
+      hadPublishedRef.current = false
+      clearPendingPresence(sessionId)
+    }
     window.addEventListener('beforeunload', clear)
     return () => {
       window.removeEventListener('beforeunload', clear)

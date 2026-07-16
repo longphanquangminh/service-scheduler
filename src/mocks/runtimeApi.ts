@@ -29,6 +29,22 @@ export async function writeRuntimeJson(fileName: string, data: unknown): Promise
   }
 }
 
+/** Atomic upsert/remove for pending.json (server merges by sessionId). */
+export async function patchPendingJson(op: {
+  upsert?: Record<string, unknown> & { sessionId: string }
+  remove?: string
+}): Promise<Record<string, unknown>> {
+  const response = await fetch(`${RUNTIME_BASE}/${RUNTIME_PENDING_FILE}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(op),
+  })
+  if (!response.ok) {
+    throw new Error(`Failed to patch ${RUNTIME_PENDING_FILE}: HTTP ${response.status}`)
+  }
+  return (await response.json()) as Record<string, unknown>
+}
+
 export function notifyRuntimeSync(kind: 'appointments' | 'pending') {
   try {
     const channel = new BroadcastChannel(RUNTIME_SYNC_CHANNEL)
